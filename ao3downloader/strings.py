@@ -160,3 +160,10 @@ ERROR_IMAGE = 'Problem getting image'
 ERROR_LINKS_LIST = 'Error encountered while getting links list. List may not be complete.'
 
 # endregion
+
+# region arguments
+
+ARGS_COMMANDS = 'commands'
+ARGS_DEFAULT = "default"
+
+# endregion

@@ -1,6 +1,7 @@
 import datetime
 import os
 import traceback
+import parse_args as args
 
 from ao3downloader import exceptions, parse_text, strings
 from ao3downloader.fileio import FileOps
@@ -9,7 +10,7 @@ from ao3downloader.repo import Repository
 
 def series() -> bool:
     print(strings.AO3_PROMPT_SERIES)
-    series = True if input() == strings.PROMPT_YES else False
+    series = True if args.arg_yn_or_input("all-works-in-series") == strings.PROMPT_YES else False
     return series
 
 
@@ -23,7 +24,7 @@ def link(fileops: FileOps) -> str:
 
 def pages() -> int:
     print(strings.AO3_PROMPT_PAGES)
-    pages = input()
+    pages = args.arg_or_input("stop-page-number")
 
     try:
         pages = int(pages)
@@ -37,7 +38,7 @@ def pages() -> int:
 
 def images() -> bool:
     print(strings.AO3_PROMPT_IMAGES)
-    images = True if input() == strings.PROMPT_YES else False
+    images = True if args.arg_yn_or_input("download-images") == strings.PROMPT_YES else False
     return images
 
 
@@ -145,18 +146,20 @@ def ao3_login(repo: Repository, fileops: FileOps, force: bool=False) -> None:
         login = True
     else:
         print(strings.AO3_PROMPT_LOGIN)
-        login = False if input() == strings.PROMPT_NO else True
+        login = False if args.arg_yn_or_input("login") == strings.PROMPT_NO else True
 
     if login:
-        savepassword = fileops.get_ini_value_boolean(strings.INI_PASSWORD_SAVE, True)
+        savepassword = fileops.get_ini_value_boolean(strings.INI_PASSWORD_SAVE, True) or args.get_arg("save-password")
 
         username = fileops.setting(
             strings.AO3_PROMPT_USERNAME,
-            strings.SETTING_USERNAME)
+            strings.SETTING_USERNAME,
+            arg_name="username")
         password = fileops.setting(
             strings.AO3_PROMPT_PASSWORD,
             strings.SETTING_PASSWORD,
-            savepassword)
+            savepassword,
+            arg_name="password")
 
         print(strings.AO3_INFO_LOGIN)
         try:
@@ -171,20 +174,32 @@ def download_types(fileops: FileOps) -> list[str]:
     filetypes = fileops.get_setting(strings.SETTING_FILETYPES)
     if isinstance(filetypes, list):
         print(strings.AO3_PROMPT_USE_SAVED_DOWNLOAD_TYPES)
-        if input() == strings.PROMPT_YES: return filetypes
+        if args.arg_yn_or_input("use-saved-download-types") == strings.PROMPT_YES: return filetypes
     filetypes = []
-    while(True):
-        filetype = ''
-        while filetype not in strings.AO3_ACCEPTABLE_DOWNLOAD_TYPES:
-            print(strings.AO3_PROMPT_DOWNLOAD_TYPE)
-            filetype = input()
-        filetypes.append(filetype)
-        print(strings.AO3_INFO_FILE_TYPE.format(filetype))
-        print(strings.AO3_PROMPT_DOWNLOAD_TYPES_COMPLETE)
-        if input() == strings.PROMPT_YES:
-            filetypes = list(set(filetypes))
+    if not args.has_arg("download-types"):
+        while(True):
+            filetype = ''
+            while filetype not in strings.AO3_ACCEPTABLE_DOWNLOAD_TYPES:
+                print(strings.AO3_PROMPT_DOWNLOAD_TYPE)
+                filetype = input()
+            filetypes.append(filetype)
+            print(strings.AO3_INFO_FILE_TYPE.format(filetype))
+            print(strings.AO3_PROMPT_DOWNLOAD_TYPES_COMPLETE)
+            if input() == strings.PROMPT_YES:
+                filetypes = list(set(filetypes))
+                fileops.save_setting(strings.SETTING_FILETYPES, filetypes)
+                return filetypes
+    else:
+        filetypes = args.get_arg("download-types").split(',')
+        if len(filetypes) == 0:
+            raise exceptions.InvalidArgsException(strings.ARGS_ERROR_DOWNLOAD_TYPES)
+        for filetype in filetypes:
+            if filetype not in strings.AO3_ACCEPTABLE_DOWNLOAD_TYPES:
+                raise exceptions.InvalidArgsException(strings.ARGS_ERROR_DOWNLOAD_TYPES)
+        filetypes = list(set(filetypes))
+        if args.get_arg("save-download-types"):
             fileops.save_setting(strings.SETTING_FILETYPES, filetypes)
-            return filetypes
+        return filetypes
 
 
 def update_types(fileops: FileOps) -> list[str]:

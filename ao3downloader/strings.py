@@ -165,5 +165,6 @@ ERROR_LINKS_LIST = 'Error encountered while getting links list. List may not be 
 
 ARGS_COMMANDS = 'commands'
 ARGS_DEFAULT = "default"
+ARGS_ERROR_DOWNLOAD_TYPES = 'please provide the desired download types from the following options (separated by commas, case-sensitive):\n' + '\n'.join(AO3_ACCEPTABLE_DOWNLOAD_TYPES)
 
 # endregion

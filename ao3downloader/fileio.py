@@ -4,6 +4,7 @@ import configparser
 import datetime
 import json
 import os
+import parse_args as args
 
 from ao3downloader import parse_text, strings
 
@@ -60,11 +61,11 @@ class FileOps:
                 return {}
 
 
-    def setting(self, prompt: str, setting: str, save: bool = True):
+    def setting(self, prompt: str, setting: str, save: bool = True, arg_name: str = None):
         value = self.get_setting(setting)
         if value == '':
             print(prompt)
-            value = input()
+            value = args.arg_or_input(arg_name)
             if save:
                 self.save_setting(setting, value)
         return value

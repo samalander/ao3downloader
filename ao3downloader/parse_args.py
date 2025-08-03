@@ -11,65 +11,79 @@ from ao3downloader.actions.pinboarddownload import action as pinboard_download_a
 from ao3downloader.actions.logvisualization import action as log_visualization_action
 from ao3downloader.actions.ignorelist import action as ignorelist_action
 
-# Base parser and global arguments
+# Base parser
 parser = argparse.ArgumentParser()
-parser.add_argument("-l", "--login", action="store_true")
-parser.add_argument("-u", "--username")
-parser.add_argument("-p", "--password")
-parser.add_argument("--save-password", action="store_true")
-parser.add_argument("--download-types")
-parser.add_argument("--save-download-types", action="store_true")
-parser.add_argument("--use-saved-download-types", action="store_true")
-parser.add_argument("--all-works-in-series", action="store_true")
-parser.add_argument("--stop-page-number", type=int, default=1)
-parser.add_argument("--download-images", action="store_true")
+
+# Universal arguments
+def univ_args(subparser):
+    subparser.add_argument("-l", "--login", action="store_true")
+    subparser.add_argument("-u", "--username")
+    subparser.add_argument("-p", "--password")
+    subparser.add_argument("--save-password", action="store_true")
+    subparser.add_argument("--download-types", help=strings.ARGS_HELP_DOWNLOAD_TYPES)
+    subparser.add_argument("--save-download-types", action="store_true")
+    subparser.add_argument("--use-saved-download-types", action="store_true")
+    subparser.add_argument("--all-works-in-series", action="store_true")
+    subparser.add_argument("--stop-page-number", type=int, default=0)
+    subparser.add_argument("--download-images", action="store_true")
 
 # Subparsers
 subparsers = parser.add_subparsers(title=strings.ARGS_COMMANDS, dest="command")
 
 # menu subparser (default)
 menu = subparsers.add_parser("menu", help=strings.ACTION_DESCRIPTION_DISPLAY_MENU+' ({})'.format(strings.ARGS_DEFAULT), description=strings.ACTION_DESCRIPTION_DISPLAY_MENU)
+univ_args(menu)
 subparsers.default = "menu"
 
 # download subparser
 download = subparsers.add_parser("download", aliases=["d"], help=strings.ACTION_DESCRIPTION_AO3, description=strings.ACTION_DESCRIPTION_AO3)
+univ_args(download)
 download.set_defaults(func=ao3_download_action)
 download.add_argument("--url")
 
 # links subparser
 links = subparsers.add_parser("links", aliases=["l"], help=strings.ACTION_DESCRIPTION_LINKS_ONLY, description=strings.ACTION_DESCRIPTION_LINKS_ONLY)
+univ_args(links)
 links.set_defaults(func=links_only_action)
 
 # file subparser
 file = subparsers.add_parser("file", aliases=["f"], help=strings.ACTION_DESCRIPTION_FILE_INPUT, description=strings.ACTION_DESCRIPTION_FILE_INPUT)
+univ_args(file)
 file.set_defaults(func=file_input_action)
 
 # update subparser
 update = subparsers.add_parser("update", aliases=["u"], help=strings.ACTION_DESCRIPTION_UPDATE, description=strings.ACTION_DESCRIPTION_UPDATE)
+univ_args(update)
 update.set_defaults(func=update_epubs_action)
 
 # series subparser
 series = subparsers.add_parser("series", aliases=["s"], help=strings.ACTION_DESCRIPTION_UPDATE_SERIES, description=strings.ACTION_DESCRIPTION_UPDATE_SERIES)
+univ_args(series)
 series.set_defaults(func=update_series_action)
 
 # re-download subparser
 re_download = subparsers.add_parser("re-download", aliases=["r"], help=strings.ACTION_DESCRIPTION_REDOWNLOAD, description=strings.ACTION_DESCRIPTION_REDOWNLOAD)
+univ_args(re_download)
 re_download.set_defaults(func=re_download_action)
 
 # marked subparser
 marked = subparsers.add_parser("marked", aliases=["m"], help=strings.ACTION_DESCRIPTION_MARKED_FOR_LATER, description=strings.ACTION_DESCRIPTION_MARKED_FOR_LATER)
+univ_args(marked)
 marked.set_defaults(func=marked_for_later_action)
 
 # pinboard subparser
 pinboard = subparsers.add_parser("pinboard", aliases=["p"], help=strings.ACTION_DESCRIPTION_PINBOARD, description=strings.ACTION_DESCRIPTION_PINBOARD)
+univ_args(pinboard)
 pinboard.set_defaults(func=pinboard_download_action)
 
 # log subparser
 log = subparsers.add_parser("log", aliases=["v"], help=strings.ACTION_DESCRIPTION_VISUALIZATION, description=strings.ACTION_DESCRIPTION_VISUALIZATION)
+univ_args(log)
 log.set_defaults(func=log_visualization_action)
 
 # ignore subparser
 ignore = subparsers.add_parser("ignore", aliases=["i"], help=strings.ACTION_DESCRIPTION_CONFIGURE_IGNORELIST, description=strings.ACTION_DESCRIPTION_CONFIGURE_IGNORELIST)
+univ_args(ignore)
 ignore.set_defaults(func=ignorelist_action)
 
 # Parse provided arguments, if any
@@ -102,6 +116,7 @@ def get_arg(arg_name):
 def arg_or_input(arg_name):
     arg=get_arg(arg_name)
     if arg:
+        print(arg)
         return arg
     else:
         return input()
@@ -109,8 +124,10 @@ def arg_or_input(arg_name):
 def arg_yn_or_input(arg_name):
     arg=get_arg(arg_name)
     if arg == True:
+        print(strings.PROMPT_YES)
         return strings.PROMPT_YES
     elif has_args():
+        print(strings.PROMPT_NO)
         return strings.PROMPT_NO
     else:
         return input()

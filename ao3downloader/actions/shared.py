@@ -1,16 +1,15 @@
 import datetime
 import os
 import traceback
-import parse_args as args
 
-from ao3downloader import exceptions, parse_text, strings
+from ao3downloader import exceptions, parse_text, strings, parse_args as args
 from ao3downloader.fileio import FileOps
 from ao3downloader.repo import Repository
 
 
 def series() -> bool:
     print(strings.AO3_PROMPT_SERIES)
-    series = True if args.arg_yn_or_input("all-works-in-series") == strings.PROMPT_YES else False
+    series = True if args.arg_yn_or_input("all_works_in_series") == strings.PROMPT_YES else False
     return series
 
 
@@ -18,13 +17,13 @@ def link(fileops: FileOps) -> str:
     link = get_last_page_downloaded(fileops)
     if not link: 
         print(strings.AO3_PROMPT_LINK)
-        link = input()
+        link = args.arg_or_input("url")
     return link
 
 
 def pages() -> int:
     print(strings.AO3_PROMPT_PAGES)
-    pages = args.arg_or_input("stop-page-number")
+    pages = args.arg_or_input("stop_page_number")
 
     try:
         pages = int(pages)
@@ -38,7 +37,7 @@ def pages() -> int:
 
 def images() -> bool:
     print(strings.AO3_PROMPT_IMAGES)
-    images = True if args.arg_yn_or_input("download-images") == strings.PROMPT_YES else False
+    images = True if args.arg_yn_or_input("download_images") == strings.PROMPT_YES else False
     return images
 
 
@@ -149,7 +148,7 @@ def ao3_login(repo: Repository, fileops: FileOps, force: bool=False) -> None:
         login = False if args.arg_yn_or_input("login") == strings.PROMPT_NO else True
 
     if login:
-        savepassword = fileops.get_ini_value_boolean(strings.INI_PASSWORD_SAVE, True) or args.get_arg("save-password")
+        savepassword = fileops.get_ini_value_boolean(strings.INI_PASSWORD_SAVE, True) or args.get_arg("save_password")
 
         username = fileops.setting(
             strings.AO3_PROMPT_USERNAME,
@@ -174,9 +173,9 @@ def download_types(fileops: FileOps) -> list[str]:
     filetypes = fileops.get_setting(strings.SETTING_FILETYPES)
     if isinstance(filetypes, list):
         print(strings.AO3_PROMPT_USE_SAVED_DOWNLOAD_TYPES)
-        if args.arg_yn_or_input("use-saved-download-types") == strings.PROMPT_YES: return filetypes
+        if args.arg_yn_or_input("use_saved_download_types") == strings.PROMPT_YES: return filetypes
     filetypes = []
-    if not args.has_arg("download-types"):
+    if not args.has_arg("download_types"):
         while(True):
             filetype = ''
             while filetype not in strings.AO3_ACCEPTABLE_DOWNLOAD_TYPES:
@@ -190,14 +189,13 @@ def download_types(fileops: FileOps) -> list[str]:
                 fileops.save_setting(strings.SETTING_FILETYPES, filetypes)
                 return filetypes
     else:
-        filetypes = args.get_arg("download-types").split(',')
+        filetypes = args.get_arg("download_types").split(',')
         if len(filetypes) == 0:
             raise exceptions.InvalidArgsException(strings.ARGS_ERROR_DOWNLOAD_TYPES)
         for filetype in filetypes:
             if filetype not in strings.AO3_ACCEPTABLE_DOWNLOAD_TYPES:
                 raise exceptions.InvalidArgsException(strings.ARGS_ERROR_DOWNLOAD_TYPES)
-        filetypes = list(set(filetypes))
-        if args.get_arg("save-download-types"):
+        if args.has_arg("save_download_types"):
             fileops.save_setting(strings.SETTING_FILETYPES, filetypes)
         return filetypes
 

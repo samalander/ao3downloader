@@ -4,9 +4,8 @@ import configparser
 import datetime
 import json
 import os
-import parse_args as args
 
-from ao3downloader import parse_text, strings
+from ao3downloader import parse_text, strings, parse_args as args
 
 
 class FileOps:
